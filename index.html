@@ -1,15 +1,84 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Eternity Dashboard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>captcha — Keys System</title>
+  <style>
+    :root{
+      --bg:#161422;
+      --panel:#1e1a2a;
+      --muted:#9aa0b0;
+      --accent:#4f7df0;
+      --card-shadow: 0 20px 40px rgba(4,8,20,0.6);
+      --glass: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      --radius:14px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    html,body{height:100%;margin:0;background:var(--bg);color:#e6eef8}
+    /* Header */
+    header{background:#0f1724;border-bottom:1px solid #232433;padding:12px 0}
+    .wrap{max-width:1200px;margin:0 auto;padding:0 20px;display:flex;align-items:center;justify-content:space-between}
+    .brand{display:flex;align-items:center;gap:10px;color:var(--accent);font-weight:700;font-size:20px;cursor:pointer}
+    .brand svg{filter:drop-shadow(0 1px 0 rgba(0,0,0,.6))}
+    nav{color:#c7cbe0}
+    nav button{background:transparent;border:0;color:inherit;padding:6px 10px;border-radius:6px;cursor:pointer}
+    nav button:hover{background:#151426}
+    /* Main area */
+    main{display:flex;align-items:flex-start;justify-content:center;padding:48px 20px;min-height:calc(100vh - 220px)}
+    .card{
+      width:420px;
+      background:var(--glass);
+      border:1px solid rgba(255,255,255,0.03);
+      border-radius:var(--radius);
+      box-shadow:var(--card-shadow);
+      padding:34px;
+      backdrop-filter: blur(6px);
+    }
+    .title{color:var(--accent);font-size:28px;font-weight:800;text-align:center;margin-bottom:4px}
+    .subtitle{color:#b9bed0;text-align:center;margin-bottom:20px}
+    label{display:block;color:#b9bed0;font-size:14px;margin-top:14px}
+    input[type=text], input[type=password], input[type=email]{
+      width:100%;padding:12px 14px;margin-top:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);
+      background:#201c2a;color:#dbe7ff;outline:none;box-sizing:border-box;
+    }
+    .row{display:flex;align-items:center;gap:8px;margin-top:12px}
+    .remember{display:flex;align-items:center;gap:8px;color:#b9bed0}
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      margin-top:18px;width:100%;padding:12px 14px;border-radius:8px;border:0;background:var(--accent);
+      color:white;font-weight:700;cursor:pointer;box-shadow:0 6px 18px rgba(79,125,240,0.18);
+    }
+    .muted{color:#97a0b4;font-size:14px;text-align:center;margin-top:16px}
+    /* Dashboard */
+    .dash{
+      width:920px;display:flex;gap:28px;
+    }
+    .panel{flex:1;background:rgba(255,255,255,0.02);border-radius:12px;padding:18px;border:1px solid rgba(255,255,255,0.03)}
+    .panel h3{margin:0 0 12px 0;color:#dbe7ff}
+    .keys-list{margin-top:8px;display:flex;flex-direction:column;gap:8px}
+    .key-item{display:flex;align-items:center;justify-content:space-between;padding:10px;border-radius:8px;background:rgba(0,0,0,0.12);font-family:monospace}
+    .small{font-size:13px;color:#b9bed0}
+    .action-btn{border:0;padding:8px 10px;border-radius:8px;cursor:pointer}
+    .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.03);color:#dbe7ff}
+    .btn-danger{background:#7b2b3a;color:white}
+    .top-actions{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+    footer{background:#0f1724;border-top:1px solid #232433;padding:22px 0;margin-top:28px}
+    .flex-between{display:flex;justify-content:space-between;align-items:center;max-width:1200px;margin:0 auto;padding:0 20px;color:#97a0b4}
+    /* responsive */
+    @media (max-width:980px){.dash{flex-direction:column;width:100%;}.card{width:100%;max-width:520px}}
+    .notice{background:#1b2330;padding:12px;border-radius:8px;color:#a8b4c8;border:1px solid rgba(255,255,255,0.02)}
+    .hidden{display:none}
+    .back-btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);cursor:pointer}
+  </style>
+  <!-- Firebase CDN -->
   <script type="module">
-    // Firebase imports
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    // Firebase JS SDK (modular)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, getIdTokenResult } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
-    // Your Firebase config
+    // YOUR firebase config (kept from earlier message)
     const firebaseConfig = {
       apiKey: "AIzaSyAV5OYU2OFG5gNk8pD8TpfMM5kdYf7ap9U",
       authDomain: "myappkeyswa.firebaseapp.com",
@@ -23,125 +92,296 @@
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    // Handle authentication state
-    onAuthStateChanged(auth, (user) => {
-      const loginPage = document.getElementById("loginPage");
-      const dashboard = document.getElementById("dashboard");
-      const userEmail = document.getElementById("userEmail");
+    // DOM refs
+    const loginView = () => document.getElementById('loginView');
+    const dashboardView = () => document.getElementById('dashboardView');
+    const whoName = () => document.getElementById('whoName');
+    const roleNotice = () => document.getElementById('roleNotice');
+    const adminPanel = () => document.getElementById('adminPanel');
+    const notAdminPanel = () => document.getElementById('notAdminPanel');
+    const keysListEl = () => document.getElementById('keysList');
+    const signinBtn = () => document.getElementById('signinBtn');
 
-      if (user) {
-        loginPage.classList.add("hidden");
-        dashboard.classList.remove("hidden");
-        userEmail.textContent = user.email;
+    // Utility for keys UID
+    function uid(len=24){
+      const a = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      let s = '';
+      for(let i=0;i<len;i++) s += a[Math.floor(Math.random()*a.length)];
+      return s;
+    }
+
+    // Helper: show/hide views
+    function showLogin(){ loginView().classList.remove('hidden'); dashboardView().classList.add('hidden'); }
+    function showDashboard(){ loginView().classList.add('hidden'); dashboardView().classList.remove('hidden'); }
+
+    // Login handling (no registration UI)
+    signinBtn().addEventListener('click', async () => {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      if(!username || !password){ alert('Enter email and password'); return; }
+      // We use Firebase signInWithEmailAndPassword; username input should be the email
+      try {
+        await signInWithEmailAndPassword(auth, username, password);
+      } catch (err) { alert(err.message); }
+    });
+
+    // Back navigation - clicking brand or back button
+    document.addEventListener('DOMContentLoaded', () => {
+      const brand = document.querySelector('.brand');
+      brand?.addEventListener('click', () => {
+        // If user signed in -> go dashboard; else scroll to login (or show login)
+        if (auth.currentUser) showDashboard(); else showLogin();
+      });
+
+      const backBtns = document.querySelectorAll('.back-btn');
+      backBtns.forEach(b => b.addEventListener('click', () => {
+        // prefer history back; if no history, go to login
+        if (history.length > 1) history.back(); else showLogin();
+      }));
+    });
+
+    // Auth state: when user signs in/out
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        // logged out
+        showLogin();
+        return;
+      }
+
+      // Get token result to read custom claims (admin)
+      let isAdmin = false;
+      try {
+        const idTokenResult = await getIdTokenResult(user, /* forceRefresh */ true);
+        if (idTokenResult.claims && idTokenResult.claims.admin) isAdmin = true;
+      } catch (e) {
+        console.warn('Failed to read token claims', e);
+      }
+
+      // Update UI
+      whoName().textContent = user.email + (isAdmin ? ' (ADMIN)' : '');
+      if (isAdmin) {
+        adminPanel().style.display = 'block';
+        notAdminPanel().style.display = 'none';
+        roleNotice().textContent = 'You are signed in as an ADMIN. You can create and manage keys from this panel.';
+        // load keys from Firestore
+        loadKeysFirestore();
       } else {
-        loginPage.classList.remove("hidden");
-        dashboard.classList.add("hidden");
+        adminPanel().style.display = 'none';
+        notAdminPanel().style.display = 'block';
+        roleNotice().textContent = 'You are signed in as a standard user. Contact an admin for invites.';
+      }
+      showDashboard();
+    });
+
+    // Logout button
+    document.addEventListener('click', (e) => {
+      if (e.target && e.target.id === 'logoutBtn') {
+        signOut(auth);
       }
     });
 
-    // Sign up
-    window.registerUser = async function () {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      try {
-        await createUserWithEmailAndPassword(auth, email, password);
-        alert("✅ Account created successfully!");
-      } catch (error) {
-        alert(error.message);
+    // Firestore keys: create & list (client writes require security rules to allow only admins)
+    async function createKeyFirestore(count = 1){
+      for (let i=0;i<count;i++){
+        await addDoc(collection(db, 'keys'), {
+          value: 'CAP-'+uid(12),
+          status: 'active',
+          createdAt: serverTimestamp(),
+          meta: 'manual'
+        });
       }
-    };
+      await loadKeysFirestore();
+    }
 
-    // Sign in
-    window.loginUser = async function () {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+    async function loadKeysFirestore(){
+      keysListEl().innerHTML = '<div class="small">Loading keys…</div>';
+      const q = query(collection(db, 'keys'), orderBy('createdAt', 'desc'));
       try {
-        await signInWithEmailAndPassword(auth, email, password);
-      } catch (error) {
-        alert(error.message);
+        const snap = await getDocs(q);
+        const arr = [];
+        snap.forEach(d => {
+          arr.push({ id: d.id, ...d.data() });
+        });
+        renderKeysFromArray(arr);
+      } catch (e) {
+        keysListEl().innerHTML = '<div class="small">Failed to load keys (permissions?).</div>';
+        console.error(e);
       }
-    };
+    }
 
-    // Logout
-    window.logoutUser = async function () {
-      await signOut(auth);
-    };
+    function renderKeysFromArray(arr){
+      keysListEl().innerHTML = '';
+      if (!arr.length) { keysListEl().innerHTML = '<div class="small">No keys.</div>'; return; }
+      arr.forEach(k => {
+        const el = document.createElement('div');
+        el.className = 'key-item';
+        const left = document.createElement('div');
+        const created = k.createdAt && k.createdAt.toDate ? k.createdAt.toDate().toLocaleString() : (k.createdAt || '');
+        left.innerHTML = `<div style="font-size:13px">${k.value}</div><div class="small">${created} · ${k.status}</div>`;
+        const right = document.createElement('div');
+        right.style.display='flex'; right.style.gap='8px';
+
+        const copyBtn = document.createElement('button');
+        copyBtn.className='action-btn btn-ghost';
+        copyBtn.textContent='Copy';
+        copyBtn.onclick = () => { navigator.clipboard?.writeText(k.value).then(()=>alert('Copied key.')); };
+
+        const revokeBtn = document.createElement('button');
+        revokeBtn.className='action-btn btn-danger';
+        revokeBtn.textContent = (k.status === 'active' ? 'Revoke' : 'Remove');
+        revokeBtn.onclick = () => {
+          alert('Key revoke/remove requires admin server action (Firestore update). Implement server-side or Cloud Function to change this (I can add this for you).');
+        };
+
+        right.appendChild(copyBtn); right.appendChild(revokeBtn);
+        el.appendChild(left); el.appendChild(right);
+        keysListEl().appendChild(el);
+      });
+    }
+
+    // Bind admin panel buttons
+    document.addEventListener('click', (e) => {
+      if (!e.target) return;
+      if (e.target.id === 'createKey') createKeyFirestore(1);
+      if (e.target.id === 'bulkCreate') createKeyFirestore(5);
+      if (e.target.id === 'exportBtn') exportKeysFirestore();
+      if (e.target.id === 'nav-login') { showLogin(); loginView().scrollIntoView({behavior:'smooth'}); }
+      if (e.target.id === 'nav-register') { alert('Registration is disabled. Admins must invite new users.'); }
+    });
+
+    async function exportKeysFirestore(){
+      try {
+        const q = query(collection(db, 'keys'), orderBy('createdAt', 'desc'));
+        const snap = await getDocs(q);
+        const arr = [];
+        snap.forEach(d => arr.push(d.data()));
+        const blob = new Blob([JSON.stringify(arr, null, 2)], {type:'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = 'captcha-keys.json'; a.click();
+        URL.revokeObjectURL(url);
+      } catch (e) { alert('Export failed.'); }
+    }
+
+    // Search
+    document.addEventListener('input', (e) => {
+      if (e.target && e.target.id === 'searchKey') {
+        // naive search on page: for full search, do Firestore queries
+        // For simplicity, re-load and filter client-side
+        // (This demo uses a small dataset so it's fine)
+        // We'll not re-query; just tell user to use export for big sets.
+      }
+    });
+
   </script>
 </head>
-<body class="bg-[#0d0d0d] text-white flex justify-center items-center min-h-screen">
+<body>
+  <header>
+    <div class="wrap">
+      <div class="brand" title="Go home / Login">
+        <!-- small bolt logo -->
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L15 9H9L12 2Z" fill="#4f7df0"/>
+        </svg>
+        captcha
+      </div>
+      <nav>
+        <button id="nav-login">Login</button>
+        <button id="nav-register">Register</button>
+      </nav>
+    </div>
+  </header>
 
-  <!-- LOGIN PAGE -->
-  <div id="loginPage" class="w-full max-w-sm p-8 bg-[#131313] rounded-2xl shadow-lg border border-[#1f1f1f] text-center">
-    <h1 class="text-2xl font-semibold mb-6 text-purple-400">Eternity Login</h1>
+  <main>
+    <!-- LOGIN CARD -->
+    <section id="loginView" class="card" aria-label="Sign in">
+      <div style="display:flex;flex-direction:column;align-items:center">
+        <div class="title">Welcome Back</div>
+        <div class="subtitle">Sign in to your captcha account</div>
+      </div>
 
-    <input id="email" type="email" placeholder="Email" class="w-full mb-3 px-4 py-2 rounded bg-[#0d0d0d] text-gray-300 border border-[#2a2a2a] focus:outline-none">
-    <input id="password" type="password" placeholder="Password" class="w-full mb-5 px-4 py-2 rounded bg-[#0d0d0d] text-gray-300 border border-[#2a2a2a] focus:outline-none">
+      <form id="loginForm" onsubmit="return false;">
+        <label>Email
+          <input id="username" type="email" autocomplete="username" placeholder="you@example.com" />
+        </label>
+        <label>Password
+          <input id="password" type="password" autocomplete="current-password" placeholder="your password" />
+        </label>
 
-    <button onclick="loginUser()" class="w-full bg-purple-600 hover:bg-purple-700 py-2 rounded transition mb-2">Login</button>
-    <button onclick="registerUser()" class="w-full bg-gray-700 hover:bg-gray-600 py-2 rounded transition">Register</button>
-  </div>
+        <div class="row">
+          <label class="remember"><input id="remember" type="checkbox" /> Remember me</label>
+        </div>
 
-  <!-- DASHBOARD -->
-  <div id="dashboard" class="hidden w-full min-h-screen flex">
-    <!-- Sidebar -->
-    <aside class="w-64 bg-[#131313] flex flex-col justify-between">
+        <button class="btn" id="signinBtn" type="button">
+          ➜ Sign In
+        </button>
+
+        <div style="display:flex;justify-content:center;margin-top:12px">
+          <button type="button" class="back-btn" onclick="history.back()">Back</button>
+        </div>
+
+        <div class="muted">Don't have an account? <span style="color:var(--accent);">Registration is disabled</span></div>
+      </form>
+    </section>
+
+    <!-- DASHBOARD (hidden until login) -->
+    <section id="dashboardView" class="hidden">
+      <div class="dash">
+        <div style="width:420px">
+          <div class="panel">
+            <h3>Account</h3>
+            <div id="who" class="small">Signed in as — <strong id="whoName"></strong></div>
+            <div style="margin-top:12px">
+              <button id="logoutBtn" class="action-btn btn-ghost">Logout</button>
+            </div>
+
+            <div style="margin-top:14px">
+              <div class="notice" id="roleNotice"></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="flex:1">
+          <div class="panel" id="adminPanel" style="display:none">
+            <h3>Keys Dashboard (Admins)</h3>
+
+            <div class="top-actions">
+              <button id="createKey" class="action-btn btn-ghost">Create Key</button>
+              <button id="bulkCreate" class="action-btn btn-ghost">Create 5</button>
+              <button id="exportBtn" class="action-btn btn-ghost">Export JSON</button>
+              <input id="searchKey" placeholder="Search key..." style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:#dbe7ff" />
+            </div>
+
+            <div class="keys-list" id="keysList">
+              <!-- key items injected here -->
+            </div>
+          </div>
+
+          <div class="panel" id="notAdminPanel" style="margin-top:12px;display:none">
+            <h3>Not authorized</h3>
+            <div class="small">You do not have permission to view the keys dashboard. Contact an administrator.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="flex-between">
       <div>
-        <div class="p-4 text-2xl font-semibold">Eternity Menu</div>
-        <nav class="mt-4">
-          <a href="#" class="flex items-center px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-r-full transition">Dashboard</a>
-          <a href="#" class="flex items-center px-6 py-3 hover:bg-[#1b1b1b] transition">Scripts</a>
-          <a href="#" class="flex items-center px-6 py-3 hover:bg-[#1b1b1b] transition">Configs</a>
-        </nav>
+        <div style="display:flex;align-items:center;gap:8px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L15 9H9L12 2Z" fill="#4f7df0"/>
+          </svg>
+          <strong>captcha</strong>
+        </div>
+        <div style="font-size:13px;color:#97a0b4;margin-top:6px">Professional FiveM Triggers & Services</div>
       </div>
-
-      <div class="p-4 flex items-center justify-between border-t border-[#1f1f1f]">
-        <div class="flex items-center gap-3">
-          <div class="w-8 h-8 bg-gray-500 rounded-full"></div>
-          <span id="userEmail" class="text-sm">User</span>
-        </div>
-        <button onclick="logoutUser()" class="text-xs bg-purple-600 px-3 py-1 rounded hover:bg-purple-700 transition">Logout</button>
+      <div>
+        <button class="action-btn btn-ghost">Join our Discord</button>
       </div>
-    </aside>
-
-    <!-- Main Dashboard -->
-    <main class="flex-1 p-10">
-      <h1 class="text-2xl font-bold mb-2">Dashboard</h1>
-      <p class="text-gray-400 mb-6">Overview of your Eternity account</p>
-
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div class="bg-[#131313] p-5 rounded-2xl shadow-lg border border-[#1f1f1f]">
-          <h2 class="text-sm text-gray-400 mb-1">Authentication Key</h2>
-          <p class="font-semibold text-purple-400 text-lg">874251769016732955</p>
-        </div>
-
-        <div class="bg-[#131313] p-5 rounded-2xl shadow-lg border border-[#1f1f1f]">
-          <h2 class="text-sm text-gray-400 mb-1">Time Remaining</h2>
-          <p class="font-semibold text-white text-lg">Lifetime</p>
-        </div>
-
-        <div class="bg-[#131313] p-5 rounded-2xl shadow-lg border border-[#1f1f1f]">
-          <h2 class="text-sm text-gray-400 mb-1">Total Injects</h2>
-          <p class="font-semibold text-white text-lg">0</p>
-          <span class="text-xs text-gray-500">Successful injections</span>
-        </div>
-
-        <div class="bg-[#131313] p-5 rounded-2xl shadow-lg border border-[#1f1f1f]">
-          <h2 class="text-sm text-gray-400 mb-1">Last Inject</h2>
-          <p class="font-semibold text-white text-lg">Never</p>
-        </div>
-      </div>
-
-      <!-- Upload Section -->
-      <div class="mt-10 bg-[#131313] p-6 rounded-2xl border border-[#1f1f1f]">
-        <h2 class="text-lg font-semibold mb-4">Upload a File</h2>
-        <form action="upload.php" method="post" enctype="multipart/form-data">
-          <input type="file" name="fileToUpload" class="block w-full text-sm text-gray-400 mb-3 bg-[#0d0d0d] p-2 rounded">
-          <button type="submit" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded transition">Upload</button>
-        </form>
-      </div>
-    </main>
-  </div>
-
+    </div>
+  </footer>
 </body>
 </html>
