@@ -1,30 +1,365 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Key System - Sign Up</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>captcha — Keys System</title>
+  <style>
+    :root{
+      --bg:#161422;
+      --panel:#1e1a2a;
+      --muted:#9aa0b0;
+      --accent:#4f7df0;
+      --card-shadow: 0 20px 40px rgba(4,8,20,0.6);
+      --glass: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      --radius:14px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    html,body{height:100%;margin:0;background:var(--bg);color:#e6eef8}
+    /* Header */
+    header{background:#0f1724;border-bottom:1px solid #232433;padding:12px 0}
+    .wrap{max-width:1200px;margin:0 auto;padding:0 20px;display:flex;align-items:center;justify-content:space-between}
+    .brand{display:flex;align-items:center;gap:10px;color:var(--accent);font-weight:700;font-size:20px}
+    .brand svg{filter:drop-shadow(0 1px 0 rgba(0,0,0,.6))}
+    nav{color:#c7cbe0}
+    nav button{background:transparent;border:0;color:inherit;padding:6px 10px;border-radius:6px;cursor:pointer}
+    nav button:hover{background:#151426}
+    /* Main area */
+    main{display:flex;align-items:flex-start;justify-content:center;padding:48px 20px;min-height:calc(100vh - 220px)}
+    .card{
+      width:420px;
+      background:var(--glass);
+      border:1px solid rgba(255,255,255,0.03);
+      border-radius:var(--radius);
+      box-shadow:var(--card-shadow);
+      padding:34px;
+      backdrop-filter: blur(6px);
+    }
+    .title{color:var(--accent);font-size:28px;font-weight:800;text-align:center;margin-bottom:4px}
+    .subtitle{color:#b9bed0;text-align:center;margin-bottom:20px}
+    label{display:block;color:#b9bed0;font-size:14px;margin-top:14px}
+    input[type=text], input[type=password]{
+      width:100%;padding:12px 14px;margin-top:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);
+      background:#201c2a;color:#dbe7ff;outline:none;box-sizing:border-box;
+    }
+    .row{display:flex;align-items:center;gap:8px;margin-top:12px}
+    .remember{display:flex;align-items:center;gap:8px;color:#b9bed0}
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      margin-top:18px;width:100%;padding:12px 14px;border-radius:8px;border:0;background:var(--accent);
+      color:white;font-weight:700;cursor:pointer;box-shadow:0 6px 18px rgba(79,125,240,0.18);
+    }
+    .muted{color:#97a0b4;font-size:14px;text-align:center;margin-top:16px}
+    /* Dashboard */
+    .dash{
+      width:920px;display:flex;gap:28px;
+    }
+    .panel{flex:1;background:rgba(255,255,255,0.02);border-radius:12px;padding:18px;border:1px solid rgba(255,255,255,0.03)}
+    .panel h3{margin:0 0 12px 0;color:#dbe7ff}
+    .keys-list{margin-top:8px;display:flex;flex-direction:column;gap:8px}
+    .key-item{display:flex;align-items:center;justify-content:space-between;padding:10px;border-radius:8px;background:rgba(0,0,0,0.12);font-family:monospace}
+    .small{font-size:13px;color:#b9bed0}
+    .action-btn{border:0;padding:8px 10px;border-radius:8px;cursor:pointer}
+    .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.03);color:#dbe7ff}
+    .btn-danger{background:#7b2b3a;color:white}
+    .top-actions{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+    footer{background:#0f1724;border-top:1px solid #232433;padding:22px 0;margin-top:28px}
+    .flex-between{display:flex;justify-content:space-between;align-items:center;max-width:1200px;margin:0 auto;padding:0 20px;color:#97a0b4}
+    /* responsive */
+    @media (max-width:980px){.dash{flex-direction:column;width:100%;}.card{width:100%;max-width:520px}}
+    .notice{background:#1b2330;padding:12px;border-radius:8px;color:#a8b4c8;border:1px solid rgba(255,255,255,0.02)}
+    .hidden{display:none}
+  </style>
 </head>
 <body>
-    <h1>Key System for Game Menu</h1>
-    <div class="form-container">
-        <h2>Sign Up</h2>
-        <div id="message" class="message"></div>
-        <form id="signup-form">
-            <input type="text" id="username" placeholder="Username" required>
-            <input type="email" id="email" placeholder="Email" required>
-            <input type="password" id="password" placeholder="Password" required>
-            <input type="submit" value="Sign Up">
-        </form>
-        <p>Admin? <a href="#" onclick="showLogin()">Log in here</a></p>
-        <p><a href="uploads/">View Hosted Files</a></p>
-        <form id="login-form" style="display:none;">
-            <h2>Admin Login</h2>
-            <input type="password" id="admin-password" placeholder="Admin Password" required>
-            <input type="submit" value="Log In" onclick="adminLogin()">
-        </form>
+  <header>
+    <div class="wrap">
+      <div class="brand">
+        <!-- small bolt logo -->
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L15 9H9L12 2Z" fill="#4f7df0"/>
+        </svg>
+        captcha
+      </div>
+      <nav>
+        <button id="nav-login">Login</button>
+        <button id="nav-register">Register</button>
+      </nav>
     </div>
-    <script src="script.js"></script>
+  </header>
+
+  <main>
+    <!-- LOGIN CARD -->
+    <section id="loginView" class="card" aria-label="Sign in">
+      <div style="display:flex;flex-direction:column;align-items:center">
+        <div class="title">Welcome Back</div>
+        <div class="subtitle">Sign in to your captcha account</div>
+      </div>
+
+      <form id="loginForm" onsubmit="return false;">
+        <label>Username
+          <input id="username" type="text" autocomplete="username" placeholder="admin" />
+        </label>
+        <label>Password
+          <input id="password" type="password" autocomplete="current-password" placeholder="your password" />
+        </label>
+
+        <div class="row">
+          <label class="remember"><input id="remember" type="checkbox" /> Remember me</label>
+        </div>
+
+        <button class="btn" id="signinBtn" type="button">
+          ➜ Sign In
+        </button>
+
+        <div class="muted">Don't have an account? <a href="#" style="color:var(--accent);text-decoration:none">Create Account</a></div>
+      </form>
+    </section>
+
+    <!-- DASHBOARD (hidden until login) -->
+    <section id="dashboardView" class="hidden">
+      <div class="dash">
+        <div style="width:420px">
+          <div class="panel">
+            <h3>Account</h3>
+            <div id="who" class="small">Signed in as — <strong id="whoName"></strong></div>
+            <div style="margin-top:12px">
+              <button id="logoutBtn" class="action-btn btn-ghost">Logout</button>
+            </div>
+
+            <div style="margin-top:14px">
+              <div class="notice" id="roleNotice"></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="flex:1">
+          <div class="panel" id="adminPanel">
+            <h3>Keys Dashboard (Admins)</h3>
+
+            <div class="top-actions">
+              <button id="createKey" class="action-btn btn-ghost">Create Key</button>
+              <button id="bulkCreate" class="action-btn btn-ghost">Create 5</button>
+              <button id="exportBtn" class="action-btn btn-ghost">Export JSON</button>
+              <input id="searchKey" placeholder="Search key..." style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:#dbe7ff" />
+            </div>
+
+            <div class="keys-list" id="keysList">
+              <!-- key items injected here -->
+            </div>
+          </div>
+
+          <div class="panel" id="notAdminPanel" style="margin-top:12px;display:none">
+            <h3>Not authorized</h3>
+            <div class="small">You do not have permission to view the keys dashboard. Contact an administrator.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="flex-between">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L15 9H9L12 2Z" fill="#4f7df0"/>
+          </svg>
+          <strong>captcha</strong>
+        </div>
+        <div style="font-size:13px;color:#97a0b4;margin-top:6px">Professional FiveM Triggers & Services</div>
+      </div>
+      <div>
+        <button class="action-btn btn-ghost">Join our Discord</button>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Simple client-side "auth" + admin-only keys dashboard
+    const loginView = document.getElementById('loginView');
+    const dashboardView = document.getElementById('dashboardView');
+    const adminPanel = document.getElementById('adminPanel');
+    const notAdminPanel = document.getElementById('notAdminPanel');
+    const keysListEl = document.getElementById('keysList');
+    const whoName = document.getElementById('whoName');
+    const roleNotice = document.getElementById('roleNotice');
+
+    const LOCAL_SESSION_KEY = 'captcha_session_v1';
+    const LOCAL_KEYS_KEY = 'captcha_keys_v1';
+
+    // Utilities
+    function uid(len=24){
+      // short random string
+      const a = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      let s = '';
+      for(let i=0;i<len;i++) s += a[Math.floor(Math.random()*a.length)];
+      return s;
+    }
+
+    function loadSession(){
+      try{
+        const raw = localStorage.getItem(LOCAL_SESSION_KEY);
+        if(!raw) return null;
+        return JSON.parse(raw);
+      }catch(e){ return null; }
+    }
+
+    function saveSession(obj){
+      localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(obj));
+    }
+
+    function clearSession(){ localStorage.removeItem(LOCAL_SESSION_KEY); }
+
+    function loadKeys(){
+      try{
+        const raw = localStorage.getItem(LOCAL_KEYS_KEY);
+        if(!raw) return [];
+        return JSON.parse(raw);
+      }catch(e){ return []; }
+    }
+
+    function saveKeys(keys){
+      localStorage.setItem(LOCAL_KEYS_KEY, JSON.stringify(keys));
+    }
+
+    // Render
+    function renderKeys(filter = ''){
+      const keys = loadKeys();
+      keysListEl.innerHTML = '';
+      const filtered = keys.filter(k => (k.value + ' ' + k.meta).toLowerCase().includes(filter.toLowerCase()));
+      if(filtered.length === 0){
+        keysListEl.innerHTML = '<div class="small">No keys.</div>'; return;
+      }
+      filtered.forEach(k => {
+        const el = document.createElement('div');
+        el.className = 'key-item';
+        const left = document.createElement('div');
+        left.innerHTML = `<div style="font-size:13px">${k.value}</div><div class="small">${k.createdAt} · ${k.status}</div>`;
+        const right = document.createElement('div');
+        right.style.display='flex'; right.style.gap='8px';
+
+        const copyBtn = document.createElement('button');
+        copyBtn.className='action-btn btn-ghost';
+        copyBtn.textContent='Copy';
+        copyBtn.onclick = () => {
+          navigator.clipboard?.writeText(k.value).then(()=>alert('Copied key.'));
+        };
+
+        const revokeBtn = document.createElement('button');
+        revokeBtn.className='action-btn btn-danger';
+        revokeBtn.textContent = (k.status === 'active' ? 'Revoke' : 'Remove');
+        revokeBtn.onclick = () => {
+          if(k.status === 'active'){
+            if(!confirm('Revoke this key?')) return;
+            k.status = 'revoked';
+          } else {
+            // remove from list
+            const all = loadKeys().filter(x => x.value !== k.value);
+            saveKeys(all); renderKeys(document.getElementById('searchKey').value);
+            return;
+          }
+          const all = loadKeys().map(x => x.value === k.value ? k : x);
+          saveKeys(all); renderKeys(document.getElementById('searchKey').value);
+        };
+
+        right.appendChild(copyBtn);
+        right.appendChild(revokeBtn);
+
+        el.appendChild(left);
+        el.appendChild(right);
+        keysListEl.appendChild(el);
+      });
+    }
+
+    // Actions
+    document.getElementById('signinBtn').addEventListener('click', () => {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const remember = document.getElementById('remember').checked;
+      if(!username){
+        alert('Enter username');
+        return;
+      }
+      // Mock auth: only role logic here. username 'admin' => admin role.
+      const role = (username.toLowerCase() === 'admin') ? 'admin' : 'user';
+      const session = { username, role, loggedAt: new Date().toISOString() };
+      if(remember) saveSession(session);
+      else session.temp = true; // stored in-memory only
+      window.__session = session;
+      enterDashboard();
+    });
+
+    function enterDashboard(){
+      loginView.classList.add('hidden');
+      dashboardView.classList.remove('hidden');
+      const s = window.__session || loadSession();
+      if(!s){ alert('session missing'); return; }
+      whoName.textContent = s.username + (s.role === 'admin' ? ' (ADMIN)' : '');
+      if(s.role === 'admin'){
+        adminPanel.style.display = 'block';
+        notAdminPanel.style.display = 'none';
+        roleNotice.textContent = 'You are signed in as an ADMIN. You can create and manage keys from this panel.';
+        renderKeys();
+      } else {
+        adminPanel.style.display = 'none';
+        notAdminPanel.style.display = 'block';
+        roleNotice.textContent = 'You are signed in as a non-admin user. Admin features are hidden.';
+      }
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      clearSession();
+      window.__session = null;
+      dashboardView.classList.add('hidden');
+      loginView.classList.remove('hidden');
+    });
+
+    // Admin buttons
+    document.getElementById('createKey').addEventListener('click', () => {
+      const keys = loadKeys();
+      const k = { value: 'CAP-'+uid(12), status:'active', createdAt: (new Date()).toLocaleString(), meta: 'manual' };
+      keys.unshift(k);
+      saveKeys(keys);
+      renderKeys(document.getElementById('searchKey').value);
+    });
+
+    document.getElementById('bulkCreate').addEventListener('click', () => {
+      const n = 5;
+      const keys = loadKeys();
+      for(let i=0;i<n;i++){
+        keys.unshift({ value: 'CAP-'+uid(10), status:'active', createdAt: (new Date()).toLocaleString(), meta:'bulk' });
+      }
+      saveKeys(keys);
+      renderKeys(document.getElementById('searchKey').value);
+    });
+
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      const keys = loadKeys();
+      const blob = new Blob([JSON.stringify(keys, null, 2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'captcha-keys.json'; a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('searchKey').addEventListener('input', (e) => {
+      renderKeys(e.target.value);
+    });
+
+    // Navbar buttons (just focus)
+    document.getElementById('nav-login').addEventListener('click', ()=>{ loginView.scrollIntoView({behavior:'smooth'}); });
+    document.getElementById('nav-register').addEventListener('click', ()=>{ alert('Register is not implemented in this demo.'); });
+
+    // Initialize: if there is a saved session, restore and enter
+    (function init(){
+      const sess = loadSession();
+      if(sess){
+        window.__session = sess;
+        enterDashboard();
+      } else {
+        // nothing
+      }
+    })();
+  </script>
 </body>
 </html>
